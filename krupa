@@ -1,0 +1,552 @@
+import { useState, useRef, useCallback } from “react”;
+
+// ── BOUTIQUE INFO ──
+const INFO = {
+name: “Krupa Boutique”,
+phone: “919662396510”,
+phoneDisplay: “096623 96510”,
+insta: “@krupaboutique_gandhinagar”,
+fb: “Krupa Boutique”,
+address: “127, 1st Floor, Radhe Square\nNr. Reliance Cross Road\nKudasan, Gandhinagar - 382421”,
+rating: “4.7”,
+since: “1999”,
+};
+
+const MONTH_NAMES = [“January”,“February”,“March”,“April”,“May”,“June”,“July”,“August”,“September”,“October”,“November”,“December”];
+const DAY_NAMES = [“Sun”,“Mon”,“Tue”,“Wed”,“Thu”,“Fri”,“Sat”];
+
+// ── FESTIVALS ──
+const FESTIVALS = {
+“1-1”:  {name:“New Year Day”,emoji:“🎊”,type:“festival”},
+“1-13”: {name:“Lohri”,emoji:“🔥”,type:“festival”},
+“1-14”: {name:“Makar Sankranti / Uttarayan”,emoji:“🪁”,type:“festival”},
+“1-26”: {name:“Republic Day”,emoji:“🇮🇳”,type:“anniversary”},
+“2-5”:  {name:“Basant Panchami”,emoji:“🌼”,type:“festival”},
+“2-14”: {name:“Valentine’s Day”,emoji:“💕”,type:“lead”},
+“2-26”: {name:“Maha Shivratri”,emoji:“🕉️”,type:“festival”},
+“3-8”:  {name:“Women’s Day”,emoji:“👩”,type:“lead”},
+“3-14”: {name:“Holi”,emoji:“🎨”,type:“festival”},
+“4-6”:  {name:“Ram Navami”,emoji:“🙏”,type:“festival”},
+“4-14”: {name:“Baisakhi”,emoji:“🌾”,type:“anniversary”},
+“5-12”: {name:“Mother’s Day”,emoji:“👩‍👧”,type:“lead”},
+“5-23”: {name:“Buddha Purnima”,emoji:“🙏”,type:“festival”},
+“6-15”: {name:“Father’s Day”,emoji:“👨‍👧”,type:“lead”},
+“6-21”: {name:“Yoga Day”,emoji:“🧘”,type:“content”},
+“7-4”:  {name:“Rath Yatra”,emoji:“🛕”,type:“festival”},
+“8-15”: {name:“Independence Day”,emoji:“🇮🇳”,type:“anniversary”},
+“8-19”: {name:“Raksha Bandhan”,emoji:“🎀”,type:“festival”},
+“8-26”: {name:“Janmashtami”,emoji:“🦚”,type:“festival”},
+“9-5”:  {name:“Teachers Day”,emoji:“📚”,type:“content”},
+“9-7”:  {name:“Ganesh Chaturthi”,emoji:“🐘”,type:“festival”},
+“9-26”: {name:“Navratri Begins”,emoji:“🪔”,type:“festival”},
+“10-2”: {name:“Gandhi Jayanti”,emoji:“🇮🇳”,type:“anniversary”},
+“10-5”: {name:“Dussehra”,emoji:“🏹”,type:“festival”},
+“10-13”:{name:“Karva Chauth”,emoji:“🌕”,type:“festival”},
+“10-20”:{name:“Dhanteras”,emoji:“🪙”,type:“festival”},
+“10-22”:{name:“Diwali”,emoji:“🪔”,type:“festival”},
+“10-24”:{name:“Bhai Dooj”,emoji:“👫”,type:“festival”},
+“11-14”:{name:“Children’s Day”,emoji:“👶”,type:“content”},
+“12-24”:{name:“Christmas Eve”,emoji:“🎄”,type:“festival”},
+“12-25”:{name:“Christmas Day”,emoji:“🎄”,type:“festival”},
+“12-31”:{name:“New Year Eve”,emoji:“🎊”,type:“festival”},
+};
+
+// ── CONTENT POOLS ──
+const OFFERS = [
+{title:“✂️ Blouse Special Week”,body:“Get your dream blouse stitched!\n\n👗 All neck designs\n💎 Premium lining included\n⚡ 5-day delivery\n✅ 100% custom fit guaranteed”},
+{title:“👗 Lehenga Offer Week”,body:“Bring your fabric, we stitch magic!\n\n✨ Bridal & party lehenga\n🎨 All colour combinations\n📏 Perfect measurements\n⚡ Timely delivery”},
+{title:“🥻 Chaniya Choli Special”,body:“Navratri or any occasion!\n\n🪡 Expert embroidery work\n🎨 Vibrant fabric choices\n💃 Dance-friendly fitting\n✅ Custom size”},
+{title:“👘 Salwar Suit Week”,body:“Office, casual or party — we stitch it all!\n\n✅ Cotton, silk, georgette\n✅ All sizes welcome\n✅ Fast delivery\n💰 Affordable prices”},
+{title:“💍 Bridal Stitching Special”,body:“Your wedding day deserves perfection!\n\n👰 Bridal lehenga & blouse\n✨ Embroidery & mirror work\n📏 Multiple fittings included\n💎 Premium finish”},
+{title:“🎀 New Fabric Arrivals!”,body:“Fresh fabrics just arrived!\n\n🧵 Banarasi silk\n🧵 Georgette & chiffon\n🧵 Cotton prints\n🧵 Party wear fabrics\n\nVisit us TODAY!”},
+{title:“🌸 Party Wear Week”,body:“Perfect party outfit?\n\n✨ Stylish designs\n💄 Trendy cuts & patterns\n⚡ Quick stitching available\n✅ All age groups”},
+{title:“🏷️ Budget Friendly Week”,body:“Quality stitching at affordable prices!\n\n💰 Blouse from Rs.299\n💰 Suit from Rs.499\n💰 Lehenga from Rs.799\n⭐ 4.7 Star quality!”},
+{title:“🪡 Embroidery Special”,body:“Add extra sparkle to your outfit!\n\n✨ Zari & zardosi work\n✨ Mirror & sequin embroidery\n✨ Thread & bead work\n✅ Custom designs welcome”},
+{title:“💎 Premium Stitching Week”,body:“Experience luxury stitching!\n\n💎 Designer patterns\n💎 Finest finishes\n💎 International quality\n⭐ Trusted since 1999”},
+{title:“🎊 Combo Offer Week”,body:“Book 2 outfits — get discount!\n\n✅ Blouse + Suit combo\n✅ Lehenga + Blouse combo\n✅ 3 Kurtis combo\n🎁 Special bundle pricing!”},
+{title:“🌺 Casual Wear Week”,body:“Comfy, stylish, perfectly stitched!\n\n👕 Cotton kurtis\n👚 Casual suits\n👖 Palazzo sets\n✅ Comfortable daily wear fit”},
+];
+
+const CONTENTS = [
+{title:“💎 Why Choose Krupa Boutique?”,body:“✅ 25+ years experience in Gandhinagar\n✅ Custom fit for every body type\n✅ Premium fabrics from best suppliers\n✅ On-time delivery every time\n⭐ Rated 4.7 on Google\n\n🏆 Trusted by 1000+ families!”},
+{title:“📏 Secret of Perfect Fit”,body:“Why custom over readymade?\n\n✅ Made for YOUR exact measurements\n✅ No uncomfortable tightness\n✅ Flatters your body shape\n✅ Lasts much longer\n✅ Your style, your choice”},
+{title:“🧵 Fabric Guide”,body:“Which fabric is best for you?\n\n☀️ Summer: Cotton & linen\n❄️ Winter: Velvet & silk\n🎉 Party: Net & georgette\n👰 Bridal: Silk & brocade\n\nExpert advice at Krupa Boutique!”},
+{title:“👑 Our Story — Est. 1999”,body:“25 years ago, Krupa Boutique opened with one mission:\n\n’Every woman should wear her dream outfit!’\n\n📍 Started in Kudasan, Gandhinagar\n💕 Grown with your love & trust\n⭐ 4.7 Stars | 1000+ Happy Families”},
+{title:“✨ This Season’s Trends”,body:“Trending right now:\n\n🔥 Pastel & earthy tones\n🔥 Oversized blouse sleeves\n🔥 Floral embroidery work\n🔥 Minimalist clean designs\n\nGet yours stitched at Krupa Boutique!”},
+{title:“🧶 How We Stitch Your Outfit”,body:“Step by step at Krupa Boutique:\n\n1️⃣ Take your measurements\n2️⃣ You choose the design\n3️⃣ Expert cutting\n4️⃣ Fine stitching\n5️⃣ Quality check\n6️⃣ Perfect outfit ready!”},
+{title:“🌺 Free Colour Consultation”,body:“Not sure which colour suits you?\n\n🎨 Skin tone colour matching\n🎨 Occasion-appropriate shades\n🎨 Trending vs classic colours\n\nFREE colour consultation at Krupa Boutique!\nCall: “ + INFO.phoneDisplay},
+{title:“🏆 25 Years of Excellence”,body:“Our achievements:\n\n🥇 1000+ bridal outfits stitched\n🥇 5000+ satisfied customers\n🥇 25 years of consistent quality\n🥇 4.7 Google rating\n\nYour trust is our greatest award!”},
+{title:“🌍 Proud to Serve Gandhinagar”,body:“For 25 years, part of this beautiful city!\n\n🏙️ From Kudasan to all of Gandhinagar\n💕 Thousands of happy families\n🌟 Your trusted neighbourhood boutique\n\nThank you for your love!”},
+{title:“🌸 Dressing for Every Season”,body:“Krupa Boutique recommends:\n\n🌞 Summer: Light cotton suits\n🌧️ Monsoon: Easy-dry fabrics\n❄️ Winter: Warm silks & velvet\n🎉 Festival: Silk & net\n\nPerfect outfit for every season!”},
+{title:“💬 Free Style Advice”,body:“Not sure what style suits you?\n\n✅ We analyse your body shape\n✅ Recommend best cuts & styles\n✅ Suggest matching fabrics\n✅ Guide on colours & embroidery\n\nFREE consultation — visit us today!”},
+{title:“🎀 Perfect Gift Ideas”,body:“Want to give a memorable gift?\n\n🎁 Stitching vouchers available\n🎁 Fabric + stitching combo\n🎁 Full outfit package\n\nPerfect for birthdays, anniversaries & weddings!\nCall: “ + INFO.phoneDisplay},
+];
+
+const LEADS = [
+{title:“🎯 Tag & Win Free Stitching!”,body:“Share this post!\nTag 2 friends who love fashion\nFollow “ + INFO.insta + “\n\n🏆 1 winner every month wins\nFREE blouse stitching!\n\nTag your friend below 👇”},
+{title:“📲 Refer & Both Save!”,body:“Refer your friend to Krupa Boutique!\n\n🎁 YOU get: Special discount on next order\n🎁 FRIEND gets: Welcome discount\n\nWin-win for both!\nCall us now: “ + INFO.phoneDisplay},
+{title:“⭐ Review & Win a Prize!”,body:“Stitched with us before?\n\n📱 Leave us a Google Review\n📸 Screenshot & WhatsApp us\n🏆 Get discount on your next order!\n\nGoogle: Krupa Boutique Kudasan\nWhatsApp: “ + INFO.phoneDisplay},
+{title:“📸 Outfit Photo Contest!”,body:“Wearing a Krupa Boutique outfit?\n\n📸 Post your photo on Instagram\n🏷️ Tag “ + INFO.insta + “\n📝 Use #KrupaStyle\n\n🏆 Best photo wins FREE stitching!\nMonthly winner announced!”},
+{title:“👯 Bring a Friend, Both Save!”,body:“Come to Krupa Boutique with a friend!\n\n💕 Both of you get special discount\n💕 Double the fun\n💕 Choose fabrics together\n\n📞 Book your joint visit:\n” + INFO.phoneDisplay},
+{title:“🌟 First Visit Special Gift!”,body:“First time at Krupa Boutique?\n\n🎁 Special first-visit discount\n🎁 Free design consultation\n🎁 Priority stitching slot\n\nMention this post when you visit!\n📍 Kudasan, Gandhinagar”},
+{title:“🎁 Mystery Offer This Week!”,body:“Visit Krupa Boutique this week!\nReveal your SURPRISE OFFER!\n\n🤫 Could be:\n🎁 Free blouse stitching\n🎁 Fabric discount\n🎁 Free alteration\n\nVisit us to find out!”},
+];
+
+const MONTH_INTROS = [
+{mood:“🎊 Happy New Year”,tip:“Start 2026 looking absolutely fabulous!”},
+{mood:“💕 Love & Celebrations”,tip:“Valentine’s season — special outfits for special moments!”},
+{mood:“🎨 Holi is Coming”,tip:“Get your colourful festival outfits ready!”},
+{mood:“🌸 Spring Festival Season”,tip:“Ram Navami & summer occasions — time for new outfits!”},
+{mood:“☀️ Summer Glow Season”,tip:“Mother’s Day & summer — look stunning!”},
+{mood:“🌿 Monsoon Fresh”,tip:“Try lightweight monsoon fabrics!”},
+{mood:“🛕 Festival Season Begins”,tip:“Rath Yatra — traditional outfits calling!”},
+{mood:“🇮🇳 Independence Month”,tip:“Raksha Bandhan & Independence Day — celebrate in style!”},
+{mood:“🐘 Ganesh & Navratri Season”,tip:“Biggest festival season is approaching — book now!”},
+{mood:“🪔 Diwali Peak Season”,tip:“Navratri, Dussehra & Diwali — busiest month!”},
+{mood:“💍 Wedding Season”,tip:“Post-Diwali wedding season is in full swing!”},
+{mood:“🎄 Year End Celebrations”,tip:“Christmas & New Year celebrations ahead!”},
+];
+
+// ── TEXT GENERATORS ──
+function festivalText(fest, seed) {
+const n = fest.name;
+const e = fest.emoji;
+const T = [
+`${e} HAPPY ${n.toUpperCase()}!\n\nWishing you a joyful ${n}!\nCelebrate in style with Krupa Boutique!\n\n✨ Custom outfits for every occasion\n🎨 100+ fabric choices\n⚡ Express delivery available\n\n📞 Book now: ${INFO.phoneDisplay}\n📍 ${INFO.address}`,
+`${e} ${n.toUpperCase()} SPECIAL!\n\nLook your best this ${n}!\n\n👗 Custom stitched outfits\n📏 Perfect fit guaranteed\n🌟 25+ years of expertise\n⭐ Rated 4.7 Stars\n\n📞 ${INFO.phoneDisplay}\n📍 ${INFO.address}`,
+`${e} CELEBRATE ${n.toUpperCase()}!\n\nDress beautifully with Krupa Boutique!\n\n✅ Your design, your fabric\n✅ Expert tailoring\n✅ On-time delivery\n⭐ Rated 4.7 Stars\n\n📞 ${INFO.phoneDisplay}\n📍 ${INFO.address}`,
+];
+return T[seed % 3];
+}
+function anniversaryText(name) {
+const a = INFO.address, p = INFO.phoneDisplay;
+if(name.includes(“Republic”)) return `🇮🇳 HAPPY REPUBLIC DAY!\n\nKrupa Boutique salutes the spirit of India!\nWear Indian colours with pride today!\n\n🥻 Saree blouses | 👘 Salwar suits\n🌺 Ethnic Gujarati wear\n\nProudly stitching since 1999!\n📞 ${p}\n📍 ${a}`;
+if(name.includes(“Independence”)) return `🇮🇳 HAPPY INDEPENDENCE DAY!\n\nCelebrate freedom in Indian fashion!\n\n🌺 Traditional Indian outfits\n🪡 Handcrafted embroidery\n✨ Made in Gandhinagar!\n\n📞 ${p}\n📍 ${a}`;
+if(name.includes(“Gandhi”)) return `🇮🇳 GANDHI JAYANTI!\n\nHonouring the Father of the Nation.\nSimplicity & quality — in every stitch!\n\n✅ Honest pricing\n✅ Quality stitching\n✅ Trusted since 1999\n📞 ${p}`;
+return `🎖️ ${name}\n\nKrupa Boutique honours this special day!\n🎁 Special discount for visitors today!\n\n📞 ${p}\n📍 ${a}`;
+}
+function leadText(name) {
+const p = INFO.phoneDisplay, a = INFO.address;
+if(name.includes(“Mother”)) return `👩‍👧 HAPPY MOTHER'S DAY!\n\nGift Mom a beautiful stitched outfit!\n\n💕 Mother + daughter matching outfits\n💕 Saree blouse for Mom\n💕 Special Mother's Day package\n\n📞 Order now: ${p}\n📍 ${a}`;
+if(name.includes(“Father”)) return `👨‍👧 HAPPY FATHER'S DAY!\n\nMake Dad proud with a family celebration!\n\n🎁 Family matching outfits available\n💕 Special day, special outfits\n\n📞 ${p}\n📍 ${a}`;
+if(name.includes(“Valentine”)) return `💕 VALENTINE'S WEEK SPECIAL!\n\nLook stunning for your special someone!\n\n💝 Custom date-night outfit\n💝 Matching couple traditional wear\n💝 Valentine special fabrics\n\n📞 Book now: ${p}\n📍 ${a}`;
+if(name.includes(“Women”)) return `👩 HAPPY WOMEN'S DAY!\n\nEvery woman deserves to look beautiful!\n\n🎁 Special discount today\n🎁 Free design consultation\n💕 Celebrate womanhood in style!\n\n📞 ${p}\n📍 ${a}`;
+return LEADS[0].body + `\n\n📍 ${a}`;
+}
+
+function buildDays(month, year) {
+const days = [];
+const total = new Date(year, month + 1, 0).getDate();
+let mc = 0, wc = 0, fc = 0;
+const base = month * 4;
+for (let d = 1; d <= total; d++) {
+const dow = new Date(year, month, d).getDay();
+const key = `${month+1}-${d}`;
+const fest = FESTIVALS[key];
+const dateStr = `${DAY_NAMES[dow]}, ${d} ${MONTH_NAMES[month]} ${year}`;
+const a = INFO.address, p = INFO.phoneDisplay;
+let entry = null;
+if (fest) {
+let text = fest.type === “festival” ? festivalText(fest, d)
+: fest.type === “anniversary” ? anniversaryText(fest.name)
+: leadText(fest.name);
+entry = { date:dateStr, d, month, year, occasion:fest.name, emoji:fest.emoji, type:fest.type, text, platform: fest.type===“lead” ? “WhatsApp + Instagram + Google” : “Google + Instagram + Facebook” };
+} else if (dow === 1) {
+const w = OFFERS[(base + mc) % OFFERS.length]; mc++;
+entry = { date:dateStr, d, month, year, occasion:w.title, emoji:“🏷️”, type:“offer”, text:`${w.title}\n\n${w.body}\n\n📍 ${a}\n📞 ${p}`, platform:“Google + Instagram” };
+} else if (dow === 3) {
+const w = CONTENTS[(base + wc) % CONTENTS.length]; wc++;
+entry = { date:dateStr, d, month, year, occasion:w.title, emoji:“💎”, type:“content”, text:`${w.title}\n\n${w.body}\n\n📍 ${a}\n📞 ${p}`, platform:“Google + Facebook” };
+} else if (dow === 5) {
+const w = LEADS[(base + fc) % LEADS.length]; fc++;
+entry = { date:dateStr, d, month, year, occasion:w.title, emoji:“🎯”, type:“lead”, text:`${w.title}\n\n${w.body}\n\n📍 ${a}\n📞 ${p}`, platform:“WhatsApp + Instagram” };
+} else if (d === 1) {
+const mi = MONTH_INTROS[month];
+entry = { date:dateStr, d, month, year, occasion:`${mi.mood} — ${MONTH_NAMES[month]}`, emoji:“🌟”, type:“offer”, text:`🌟 HELLO ${MONTH_NAMES[month].toUpperCase()} ${year}!\n\n${mi.mood}\n${mi.tip}\n\nKrupa Boutique is ready with:\n✅ New ${MONTH_NAMES[month]} fabric collection\n✅ Special stitching packages\n✅ Festival & event bookings open!\n\n📞 Book TODAY: ${p}\n📍 ${a}`, platform:“Google + Instagram + WhatsApp” };
+}
+if (entry) days.push(entry);
+}
+return days;
+}
+
+// ── CANVAS IMAGE DRAW ──
+function rrect(ctx, x, y, w, h, r) {
+r = Math.min(r, w/2, h/2);
+ctx.beginPath();
+ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+ctx.closePath();
+}
+function wrapLines(ctx, text, maxW) {
+const out = [];
+for (const para of text.split(”\n”)) {
+if (!para.trim()) { out.push(””); continue; }
+const words = para.split(” “); let line = “”;
+for (const w of words) {
+const t = line ? line + “ “ + w : w;
+if (ctx.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t;
+}
+if (line) out.push(line);
+}
+return out;
+}
+function drawFooter(ctx, W, H) {
+ctx.shadowBlur = 0;
+ctx.fillStyle = “rgba(0,0,0,0.92)”; rrect(ctx,36,H-198,W-72,158,14); ctx.fill();
+ctx.fillStyle = “#FFFFFF”; ctx.font = “bold 21px sans-serif”; ctx.textAlign = “center”;
+ctx.fillText(“📍 “+INFO.address.split(”\n”)[0], W/2, H-168);
+ctx.font = “19px sans-serif”;
+ctx.fillText(INFO.address.split(”\n”)[1]+”  |  “+INFO.address.split(”\n”)[2]+”  |  📞 “+INFO.phoneDisplay, W/2, H-138);
+ctx.fillStyle = “#FF69B4”; ctx.font = “bold 20px sans-serif”;
+ctx.fillText(“📷 “+INFO.insta+”     📘 “+INFO.fb, W/2, H-102);
+ctx.fillStyle = “#FFD700”; ctx.font = “bold 20px sans-serif”;
+ctx.fillText(“★★★★★  Google Rated “+INFO.rating+”  |  Since “+INFO.since, W/2, H-66);
+}
+
+const PALETTE = {
+festival:    [”#0d0020”,”#3b001a”,”#E91E8C”,”#FFD700”],
+offer:       [”#1a0800”,”#3b1500”,”#FF8C00”,”#FFD700”],
+lead:        [”#001a0d”,”#003320”,”#4CAF50”,”#FFD700”],
+anniversary: [”#0a0a1a”,”#0d0d2e”,”#90CAF9”,”#FFD700”],
+content:     [”#001520”,”#002535”,”#00BCD4”,”#FFD700”],
+};
+function drawImage(canvas, day) {
+const W=1080, H=1080;
+canvas.width=W; canvas.height=H;
+const ctx = canvas.getContext(“2d”);
+const [bg1,bg2,accent,gold] = PALETTE[day.type] || PALETTE.content;
+const layout = ((day.d * 3 + day.month * 7)) % 5;
+
+// Background
+const bg = ctx.createRadialGradient(W/2,H/2,60,W/2,H/2,720);
+bg.addColorStop(0, bg2); bg.addColorStop(1, bg1);
+ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+// Subtle dot texture
+ctx.fillStyle = “rgba(255,255,255,0.04)”;
+for(let i=50;i<W;i+=55) for(let j=50;j<H;j+=55) { ctx.beginPath(); ctx.arc(i,j,1.5,0,Math.PI*2); ctx.fill(); }
+
+// Layout variations
+if (layout === 0) {
+// Left-aligned split
+const rp = ctx.createLinearGradient(W*0.65,0,W,0);
+rp.addColorStop(0,“rgba(255,255,255,0)”); rp.addColorStop(1,“rgba(255,255,255,0.04)”);
+ctx.fillStyle=rp; ctx.fillRect(W*0.65,0,W*0.35,H);
+ctx.strokeStyle=gold; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(W*0.65,60); ctx.lineTo(W*0.65,H-60); ctx.stroke();
+} else if (layout === 1) {
+// Radial glow top
+const gl = ctx.createRadialGradient(W/2,0,0,W/2,0,500);
+gl.addColorStop(0,“rgba(255,255,255,0.06)”); gl.addColorStop(1,“rgba(255,255,255,0)”);
+ctx.fillStyle=gl; ctx.fillRect(0,0,W,500);
+} else if (layout === 2) {
+// Corner glow
+const gl = ctx.createRadialGradient(0,0,0,0,0,400);
+gl.addColorStop(0,“rgba(255,255,255,0.05)”); gl.addColorStop(1,“rgba(0,0,0,0)”);
+ctx.fillStyle=gl; ctx.fillRect(0,0,W,H);
+} else if (layout === 3) {
+// Bottom glow
+const gl = ctx.createRadialGradient(W/2,H,0,W/2,H,500);
+gl.addColorStop(0,“rgba(255,255,255,0.05)”); gl.addColorStop(1,“rgba(0,0,0,0)”);
+ctx.fillStyle=gl; ctx.fillRect(0,H/2,W,H/2);
+} else {
+// Diagonal band
+const gl = ctx.createLinearGradient(0,0,W,H);
+gl.addColorStop(0,“rgba(255,255,255,0)”); gl.addColorStop(0.5,“rgba(255,255,255,0.04)”); gl.addColorStop(1,“rgba(255,255,255,0)”);
+ctx.fillStyle=gl; ctx.fillRect(0,0,W,H);
+}
+
+// Outer gold border
+const grd = ctx.createLinearGradient(0,0,W,H);
+grd.addColorStop(0,gold); grd.addColorStop(0.5,”#FFFDE7”); grd.addColorStop(1,gold);
+ctx.strokeStyle=grd; ctx.lineWidth=12; rrect(ctx,14,14,W-28,H-28,20); ctx.stroke();
+ctx.strokeStyle=accent+“66”; ctx.lineWidth=2; rrect(ctx,26,26,W-52,H-52,14); ctx.stroke();
+
+// Header panel
+ctx.fillStyle=“rgba(0,0,0,0.7)”; rrect(ctx,46,46,W-92,155,18); ctx.fill();
+const hl=ctx.createLinearGradient(60,0,W-60,0);
+hl.addColorStop(0,“transparent”); hl.addColorStop(0.3,gold); hl.addColorStop(0.7,gold); hl.addColorStop(1,“transparent”);
+ctx.strokeStyle=hl; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(60,48); ctx.lineTo(W-60,48); ctx.stroke();
+ctx.beginPath(); ctx.moveTo(60,199); ctx.lineTo(W-60,199); ctx.stroke();
+
+ctx.fillStyle=gold; ctx.font=“bold 60px Georgia”; ctx.textAlign=“center”;
+ctx.shadowColor=gold; ctx.shadowBlur=16;
+ctx.fillText(“✨ Krupa Boutique”, W/2, 122); ctx.shadowBlur=0;
+ctx.fillStyle=accent; ctx.font=“italic 24px Georgia”;
+ctx.fillText(“Est.”+INFO.since+”  •  Kudasan, Gandhinagar  •  ⭐ “+INFO.rating, W/2, 170);
+
+// Occasion badge
+ctx.fillStyle=gold; ctx.font=“bold 26px sans-serif”; ctx.textAlign=“center”;
+const occ = day.occasion.length>44 ? day.occasion.substring(0,44)+”…” : day.occasion;
+ctx.fillText(occ, W/2, 238);
+ctx.fillStyle=“rgba(255,255,255,0.55)”; ctx.font=“20px sans-serif”;
+ctx.fillText(“📅 “+day.date, W/2, 272);
+
+// Divider
+const dl=ctx.createLinearGradient(80,0,W-80,0);
+dl.addColorStop(0,“transparent”); dl.addColorStop(0.2,accent); dl.addColorStop(0.8,accent); dl.addColorStop(1,“transparent”);
+ctx.strokeStyle=dl; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(80,288); ctx.lineTo(W-288,288); ctx.stroke();
+
+// Body text
+ctx.fillStyle=”#F5F5F5”; ctx.font=“33px Georgia”; ctx.textAlign=“left”;
+ctx.shadowColor=“rgba(0,0,0,0.7)”; ctx.shadowBlur=5;
+const lines = wrapLines(ctx, day.text, W-260);
+let y=334, lh=52;
+for(let i=0;i<lines.length&&y<H-215;i++) { ctx.fillText(lines[i],130,y); y+=lh; }
+ctx.shadowBlur=0;
+
+drawFooter(ctx, W, H);
+}
+
+// ── TYPE CONFIG ──
+const TYPE = {
+festival:    {bg:”#fff0f8”,border:”#e91e8c”,chip:”#e91e8c”,label:“🎊 Festival”},
+offer:       {bg:”#fff8f0”,border:”#ef6c00”,chip:”#ef6c00”,label:“🏷️ Offer”},
+lead:        {bg:”#f0fff4”,border:”#2e7d32”,chip:”#2e7d32”,label:“🎯 Lead”},
+anniversary: {bg:”#f0f4ff”,border:”#5c35c5”,chip:”#5c35c5”,label:“🏅 Anniversary”},
+content:     {bg:”#f0f8ff”,border:”#0277bd”,chip:”#0277bd”,label:“💡 Content”},
+};
+
+// ── MAIN APP ──
+export default function App() {
+const now = new Date();
+const [screen, setScreen] = useState(“home”); // home | calendar | preview
+const [month, setMonth] = useState(now.getMonth());
+const [year, setYear] = useState(now.getFullYear());
+const [filter, setFilter] = useState(“all”);
+const [days, setDays] = useState([]);
+const [selected, setSelected] = useState(null);
+const [copied, setCopied] = useState(false);
+const [imgReady, setImgReady] = useState(false);
+const canvasRef = useRef(null);
+
+const generate = useCallback(() => {
+const d = buildDays(month, year);
+setDays(d);
+setScreen(“calendar”);
+window.scrollTo(0,0);
+}, [month, year]);
+
+const openPost = useCallback((day) => {
+setSelected(day);
+setImgReady(false);
+setCopied(false);
+setScreen(“preview”);
+window.scrollTo(0,0);
+setTimeout(() => {
+if (canvasRef.current) {
+drawImage(canvasRef.current, day);
+setImgReady(true);
+}
+}, 80);
+}, []);
+
+const copyText = useCallback(() => {
+if (!selected) return;
+navigator.clipboard.writeText(selected.text).then(() => {
+setCopied(true);
+setTimeout(() => setCopied(false), 2500);
+}).catch(() => {
+const ta = document.createElement(“textarea”);
+ta.value = selected.text;
+document.body.appendChild(ta); ta.select();
+document.execCommand(“copy”);
+document.body.removeChild(ta);
+setCopied(true);
+setTimeout(() => setCopied(false), 2500);
+});
+}, [selected]);
+
+const downloadImg = useCallback(() => {
+if (!canvasRef.current) return;
+const a = document.createElement(“a”);
+a.download = `KrupaBoutique_${(selected?.occasion||"Post").replace(/[^a-zA-Z0-9]/g,"_").substring(0,25)}.png`;
+a.href = canvasRef.current.toDataURL(“image/png”);
+a.click();
+}, [selected]);
+
+const whatsapp = (msg = “”) => {
+const text = msg || `Hi! I would like to book a stitching appointment at Krupa Boutique.`;
+window.open(`https://wa.me/${INFO.phone}?text=${encodeURIComponent(text)}`, “_blank”);
+};
+
+const filtered = filter === “all” ? days : days.filter(d => d.type === filter);
+
+// ── STYLES ──
+const s = {
+app: { fontFamily:“Georgia,serif”, background:“linear-gradient(160deg,#fff8f0,#fce4d6)”, minHeight:“100vh”, paddingBottom:80 },
+header: { background:“linear-gradient(135deg,#880e4f,#c2185b,#e91e8c)”, padding:“16px 16px 20px”, textAlign:“center” },
+h1: { color:”#FFD700”, fontSize:24, fontWeight:900, margin:0 },
+sub: { color:“rgba(255,255,255,0.85)”, fontSize:12, marginTop:4, fontFamily:“sans-serif” },
+card: { background:“white”, borderRadius:16, padding:16, margin:“12px 12px 0”, boxShadow:“0 4px 16px rgba(136,14,79,0.1)”, border:“1px solid #fce4ec” },
+label: { fontFamily:“sans-serif”, fontSize:11, fontWeight:700, color:”#880e4f”, letterSpacing:1, textTransform:“uppercase”, marginBottom:6, display:“block” },
+select: { width:“100%”, padding:“11px 12px”, borderRadius:10, border:“1.5px solid #f8bbd0”, fontFamily:“sans-serif”, fontSize:14, color:”#333”, background:”#fff9fb”, outline:“none” },
+btn: { width:“100%”, marginTop:14, padding:14, borderRadius:12, border:“none”, background:“linear-gradient(135deg,#880e4f,#c2185b,#e91e8c)”, color:“white”, fontFamily:“sans-serif”, fontSize:16, fontWeight:800, cursor:“pointer”, boxShadow:“0 4px 18px rgba(136,14,79,0.4)” },
+filterRow: { display:“flex”, gap:8, overflowX:“auto”, padding:“12px 12px 0” },
+chip: (active, color=”#c2185b”) => ({ padding:“7px 14px”, borderRadius:20, border:`1.5px solid ${active?color:"#f8bbd0"}`, background:active?color:“white”, color:active?“white”:color, fontFamily:“sans-serif”, fontSize:12, fontWeight:700, cursor:“pointer”, whiteSpace:“nowrap”, flexShrink:0 }),
+dayCard: (type) => ({ background:TYPE[type]?.bg||”#f9f9f9”, borderLeft:`4px solid ${TYPE[type]?.border||"#ccc"}`, borderRadius:12, padding:“12px 14px”, margin:“8px 12px 0”, cursor:“pointer” }),
+dayDate: { fontFamily:“sans-serif”, fontSize:11, color:”#888”, fontWeight:600, marginBottom:4 },
+dayOcc: { fontFamily:“Georgia,serif”, fontSize:15, fontWeight:700, color:”#222”, marginBottom:6 },
+dayPlatform: { fontFamily:“sans-serif”, fontSize:11, color:”#c2185b”, fontWeight:600 },
+typeChip: (type) => ({ display:“inline-block”, padding:“2px 10px”, borderRadius:20, background:TYPE[type]?.chip||”#888”, color:“white”, fontFamily:“sans-serif”, fontSize:10, fontWeight:700, marginBottom:6 }),
+back: { background:“none”, border:“none”, color:“white”, fontFamily:“sans-serif”, fontSize:14, fontWeight:700, cursor:“pointer”, padding:“0 4px” },
+canvas: { width:“100%”, borderRadius:12, display:“block”, border:“1px solid #fce4ec”, marginBottom:12 },
+actionRow: { display:“grid”, gridTemplateColumns:“1fr 1fr”, gap:10, padding:“0 12px” },
+dlBtn: { padding:14, borderRadius:12, border:“none”, background:“linear-gradient(135deg,#1565c0,#1e88e5)”, color:“white”, fontFamily:“sans-serif”, fontSize:14, fontWeight:800, cursor:“pointer” },
+cpBtn: (ok) => ({ padding:14, borderRadius:12, border:“none”, background:ok?“linear-gradient(135deg,#1b5e20,#2e7d32)”:“linear-gradient(135deg,#2e7d32,#43a047)”, color:“white”, fontFamily:“sans-serif”, fontSize:14, fontWeight:800, cursor:“pointer” }),
+waBtn: { width:“calc(100% - 24px)”, margin:“10px 12px 0”, padding:14, borderRadius:12, border:“none”, background:“linear-gradient(135deg,#1b5733,#25D366)”, color:“white”, fontFamily:“sans-serif”, fontSize:15, fontWeight:800, cursor:“pointer”, display:“flex”, alignItems:“center”, justifyContent:“center”, gap:8 },
+stickyWa: { position:“fixed”, bottom:16, right:16, zIndex:999, width:58, height:58, borderRadius:“50%”, background:”#25D366”, border:“none”, cursor:“pointer”, display:“flex”, alignItems:“center”, justifyContent:“center”, boxShadow:“0 4px 20px rgba(37,211,102,0.5)”, fontSize:26 },
+statsRow: { display:“grid”, gridTemplateColumns:“repeat(4,1fr)”, gap:8, padding:“12px 12px 0” },
+statBox: { background:“white”, borderRadius:12, padding:“10px 4px”, textAlign:“center”, border:“1px solid #fce4ec” },
+statNum: { fontSize:20, fontWeight:900, color:”#c2185b”, fontFamily:“sans-serif”, display:“block” },
+statLbl: { fontSize:9, color:”#888”, fontFamily:“sans-serif”, letterSpacing:0.5, display:“block”, marginTop:2 },
+sectionTitle: { fontFamily:“sans-serif”, fontSize:11, fontWeight:700, color:”#888”, letterSpacing:1, textTransform:“uppercase”, padding:“14px 12px 0” },
+previewCard: { background:“white”, borderRadius:16, margin:“12px”, padding:12, boxShadow:“0 4px 16px rgba(136,14,79,0.1)”, border:“1px solid #fce4ec” },
+textBox: { background:”#fff9fb”, borderRadius:10, padding:12, fontFamily:“sans-serif”, fontSize:13, lineHeight:1.7, color:”#333”, whiteSpace:“pre-wrap”, border:“1px solid #fce4ec”, marginBottom:12 },
+};
+
+// ── SCREENS ──
+
+// HOME
+if (screen === “home”) return (
+<div style={s.app}>
+<div style={s.header}>
+<div style={{fontSize:11,fontFamily:“sans-serif”,color:“rgba(255,255,255,0.7)”,letterSpacing:2,marginBottom:6}}>365-DAY CONTENT PLANNER</div>
+<div style={s.h1}>✨ Krupa Boutique</div>
+<div style={s.sub}>Complete Year Marketing Calendar</div>
+<div style={{...s.sub,fontSize:11,opacity:0.7,marginTop:3}}>📍 Kudasan, Gandhinagar  •  📞 {INFO.phoneDisplay}</div>
+</div>
+
+```
+  <div style={s.statsRow}>
+    {[["365","TOTAL DAYS"],["85+","FESTIVALS"],["52","WEEKLY OFFERS"],["12","LEAD DRIVES"]].map(([n,l])=>(
+      <div key={l} style={s.statBox}><span style={s.statNum}>{n}</span><span style={s.statLbl}>{l}</span></div>
+    ))}
+  </div>
+
+  <div style={s.card}>
+    <div style={s.label}>Select Month</div>
+    <select style={s.select} value={month} onChange={e=>setMonth(+e.target.value)}>
+      {MONTH_NAMES.map((m,i)=><option key={m} value={i}>{m}</option>)}
+    </select>
+    <div style={{...s.label,marginTop:12}}>Year</div>
+    <select style={s.select} value={year} onChange={e=>setYear(+e.target.value)}>
+      {[2025,2026,2027].map(y=><option key={y} value={y}>{y}</option>)}
+    </select>
+
+    <div style={{...s.label,marginTop:12}}>Filter Posts</div>
+    <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+      {[["all","📅 All","#c2185b"],["festival","🎊 Festival","#e91e8c"],["offer","🏷️ Offers","#ef6c00"],["lead","🎯 Leads","#2e7d32"],["content","💡 Content","#0277bd"]].map(([f,l,c])=>(
+        <button key={f} style={s.chip(filter===f,c)} onClick={()=>setFilter(f)}>{l}</button>
+      ))}
+    </div>
+
+    <button style={s.btn} onClick={generate}>📅 Generate Content Calendar</button>
+  </div>
+
+  {/* WhatsApp section */}
+  <div style={s.sectionTitle}>📲 CUSTOMER CONTACT</div>
+  <div style={s.card}>
+    <div style={{fontFamily:"sans-serif",fontSize:13,color:"#555",marginBottom:10}}>Let customers WhatsApp you directly for bookings:</div>
+    <button style={{...s.waBtn,width:"100%",margin:0}} onClick={()=>whatsapp()}>
+      <span style={{fontSize:22}}>💬</span> WhatsApp Krupa Boutique
+    </button>
+    <div style={{fontFamily:"sans-serif",fontSize:11,color:"#888",textAlign:"center",marginTop:8}}>Opens WhatsApp with auto message to {INFO.phoneDisplay}</div>
+  </div>
+
+  <button style={s.stickyWa} onClick={()=>whatsapp()} title="WhatsApp">💬</button>
+</div>
+```
+
+);
+
+// CALENDAR
+if (screen === “calendar”) return (
+<div style={s.app}>
+<div style={s.header}>
+<div style={{display:“flex”,alignItems:“center”,gap:8}}>
+<button style={s.back} onClick={()=>setScreen(“home”)}>← Back</button>
+<div style={{flex:1}}>
+<div style={s.h1}>📅 {MONTH_NAMES[month]} {year}</div>
+<div style={s.sub}>{filtered.length} posts ready</div>
+</div>
+</div>
+</div>
+
+```
+  <div style={s.filterRow}>
+    {[["all","📅 All","#c2185b"],["festival","🎊","#e91e8c"],["offer","🏷️","#ef6c00"],["lead","🎯","#2e7d32"],["content","💡","#0277bd"],["anniversary","🏅","#5c35c5"]].map(([f,l,c])=>(
+      <button key={f} style={s.chip(filter===f,c)} onClick={()=>setFilter(f)}>{l} {f==="all"?"All":""}</button>
+    ))}
+  </div>
+
+  {filtered.map((day,i)=>(
+    <div key={i} style={s.dayCard(day.type)} onClick={()=>openPost(day)}>
+      <div style={s.typeChip(day.type)}>{TYPE[day.type]?.label||day.type}</div>
+      <div style={s.dayDate}>{day.date}</div>
+      <div style={s.dayOcc}>{day.emoji} {day.occasion}</div>
+      <div style={s.dayPlatform}>📱 {day.platform}</div>
+      <div style={{fontFamily:"sans-serif",fontSize:11,color:"#c2185b",marginTop:6,fontWeight:600}}>Tap to create image →</div>
+    </div>
+  ))}
+
+  {filtered.length === 0 && (
+    <div style={{textAlign:"center",padding:"40px 20px",fontFamily:"sans-serif",color:"#888"}}>No posts for this filter</div>
+  )}
+
+  <button style={s.stickyWa} onClick={()=>whatsapp()}>💬</button>
+</div>
+```
+
+);
+
+// PREVIEW
+if (screen === “preview” && selected) return (
+<div style={s.app}>
+<div style={s.header}>
+<div style={{display:“flex”,alignItems:“center”,gap:8}}>
+<button style={s.back} onClick={()=>setScreen(“calendar”)}>← Back</button>
+<div style={{flex:1}}>
+<div style={{...s.h1,fontSize:16}}>{selected.emoji} {selected.occasion.substring(0,30)}</div>
+<div style={s.sub}>{selected.date}</div>
+</div>
+</div>
+</div>
+
+```
+  <div style={s.previewCard}>
+    {!imgReady && <div style={{textAlign:"center",padding:"30px 0",fontFamily:"sans-serif",color:"#c2185b",fontSize:14}}>🎨 Creating your image...</div>}
+    <canvas ref={canvasRef} style={{...s.canvas, display:imgReady?"block":"none"}}/>
+
+    <div style={s.actionRow}>
+      <button style={s.dlBtn} onClick={downloadImg} disabled={!imgReady}>
+        ⬇️ Download Image
+      </button>
+      <button style={s.cpBtn(copied)} onClick={copyText}>
+        {copied ? "✅ Copied!" : "📋 Copy Text"}
+      </button>
+    </div>
+  </div>
+
+  {/* Post text preview */}
+  <div style={{...s.card,margin:"12px 12px 0"}}>
+    <div style={{fontFamily:"sans-serif",fontSize:11,fontWeight:700,color:"#880e4f",letterSpacing:1,marginBottom:8}}>POST TEXT — COPY & PASTE</div>
+    <div style={s.textBox}>{selected.text}</div>
+    <div style={{fontFamily:"sans-serif",fontSize:11,color:"#888",marginBottom:8}}>📱 Best platform: {selected.platform}</div>
+  </div>
+
+  {/* WhatsApp this post */}
+  <button style={s.waBtn} onClick={()=>whatsapp(`Hi Krupa Boutique! I saw your ${selected.occasion} post and want to book an appointment. Please let me know the available slots.`)}>
+    <span style={{fontSize:20}}>💬</span> Share via WhatsApp
+  </button>
+
+  <div style={{height:30}}/>
+  <button style={s.stickyWa} onClick={()=>whatsapp()}>💬</button>
+</div>
+```
+
+);
+
+return null;
+}

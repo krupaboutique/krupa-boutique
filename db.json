@@ -1,0 +1,33 @@
+{
+  "boutique": {
+    "name": "Krupa Boutique",
+    "owner": "Admin",
+    "email": "krupaboutique@gmail.com",
+    "phone": "09979430978",
+    "address": "132, 1st floor, RADHE SQUARE, above cake bar, nr. Reliance Cross Road, Kudasan, Gandhinagar, Gujarat 382419",
+    "gst": "",
+    "logo": "✂️",
+    "whatsapp": "https://wa.me/919979430978?text=Hi%2C%20I%20want%20to%20book%20an%20appointment%20at%20Krupa%20Boutique",
+    "calendar": "https://calendar.google.com/calendar/u/0/r?authuser=krupaboutique@gmail.com"
+  },
+  "admin": {
+    "email": "krupaboutique@gmail.com",
+    "pass": "admin123"
+  },
+  "orders": [],
+  "customers": [
+    {
+      "id": "e29e95b7ac",
+      "join_date": "2026-04-28",
+      "name": "panchal devang",
+      "phone": "9662396510",
+      "email": "",
+      "city": "Gandhinagar",
+      "notes": ""
+    }
+  ],
+  "tailors": [],
+  "appointments": [],
+  "expenses": [],
+  "attendance": []
+}

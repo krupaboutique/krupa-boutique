@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+  <title>Multi-Timezone Digital Clock</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 48px;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .header p {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: rgba(255,255,255,0.2);
+      border: 2px solid white;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .btn:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .btn.active {
+      background: rgba(255,255,255,0.5);
+    }
+
+    .clocks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .clock-card {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .clock-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    }
+
+    .timezone-name {
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 10px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .timezone-offset {
+      font-size: 12px;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .digital-time {
+      font-size: 48px;
+      font-weight: 700;
+      color: #00ff88;
+      font-family: 'Courier New', monospace;
+      text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+    }
+
+    .date-display {
+      font-size: 14px;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 15px;
+    }
+
+    .analog-clock {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      border: 3px solid rgba(255,255,255,0.3);
+      position: relative;
+      margin: 0 auto;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+    }
+
+    .clock-center {
+      width: 12px;
+      height: 12px;
+      background: white;
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      box-shadow: 0 0 10px rgba(255,255,255,0.8);
+    }
+
+    .hand {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform-origin: bottom center;
+      background: white;
+      border-radius: 10px;
+    }
+
+    .hour-hand {
+      width: 6px;
+      height: 60px;
+      margin-left: -3px;
+      background: rgba(255,255,255,0.9);
+    }
+
+    .minute-hand {
+      width: 4px;
+      height: 80px;
+      margin-left: -2px;
+      background: rgba(255,255,255,0.8);
+    }
+
+    .second-hand {
+      width: 2px;
+      height: 90px;
+      margin-left: -1px;
+      background: #00ff88;
+      box-shadow: 0 0 5px #00ff88;
+    }
+
+    .number {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .number span {
+      display: inline-block;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .number span:nth-child(1) { top: 10px; }
+    .number span:nth-child(2) { top: 50%; right: 10px; transform: translateY(-50%); }
+    .number span:nth-child(3) { bottom: 10px; }
+    .number span:nth-child(4) { top: 50%; left: 10px; transform: translateY(-50%); }
+
+    .format-toggle {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .toggle-label {
+      color: rgba(255,255,255,0.7);
+      font-size: 12px;
+      margin-right: 10px;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 30px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255,255,255,0.2);
+      transition: 0.4s;
+      border-radius: 30px;
+      border: 2px solid rgba(255,255,255,0.4);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 22px;
+      width: 22px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: rgba(0, 255, 136, 0.5);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(30px);
+    }
+
+    .info-box {
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+      padding: 20px;
+      margin-top: 30px;
+      color: white;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .info-box h3 {
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .info-box p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 32px;
+      }
+
+      .digital-time {
+        font-size: 36px;
+      }
+
+      .clocks-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>🌍 Multi-Timezone Clock</h1>
+    <p>Real-time display across the world</p>
+  </div>
+
+  <div class="controls">
+    <button class="btn active" onclick="filterClocks('all')">All Zones</button>
+    <button class="btn" onclick="filterClocks('major')">Major Cities</button>
+    <button class="btn" onclick="filterClocks('business')">Business Hours</button>
+  </div>
+
+  <div class="clocks-grid" id="clocksGrid"></div>
+
+  <div class="info-box">
+    <h3>⚙️ Display Options</h3>
+    <p>
+      <span class="toggle-label">Show Analog Clock:</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="analogToggle" onchange="toggleAnalog()" checked/>
+        <span class="slider"></span>
+      </label>
+    </p>
+    <p style="margin-top: 10px; font-size: 13px;">
+      Current UTC Time: <strong id="utcTime">--:--:--</strong>
+    </p>
+  </div>
+</div>
+
+<script>
+  const timezones = [
+    { name: 'London', tz: 'Europe/London', category: ['major', 'business'] },
+    { name: 'New York', tz: 'America/New_York', category: ['major', 'business'] },
+    { name: 'Los Angeles', tz: 'America/Los_Angeles', category: ['major', 'business'] },
+    { name: 'Tokyo', tz: 'Asia/Tokyo', category: ['major', 'business'] },
+    { name: 'Sydney', tz: 'Australia/Sydney', category: ['major', 'business'] },
+    { name: 'Dubai', tz: 'Asia/Dubai', category: ['major', 'business'] },
+    { name: 'Singapore', tz: 'Asia/Singapore', category: ['major', 'business'] },
+    { name: 'Hong Kong', tz: 'Asia/Hong_Kong', category: ['major', 'business'] },
+    { name: 'Mumbai', tz: 'Asia/Kolkata', category: ['major', 'business'] },
+    { name: 'São Paulo', tz: 'America/Sao_Paulo', category: ['major'] },
+    { name: 'Toronto', tz: 'America/Toronto', category: ['major', 'business'] },
+    { name: 'Mexico City', tz: 'America/Mexico_City', category: ['major'] },
+    { name: 'Bangkok', tz: 'Asia/Bangkok', category: ['major'] },
+    { name: 'Moscow', tz: 'Europe/Moscow', category: ['major'] },
+    { name: 'Istanbul', tz: 'Europe/Istanbul', category: ['major'] },
+    { name: 'Berlin', tz: 'Europe/Berlin', category: ['major', 'business'] },
+    { name: 'Paris', tz: 'Europe/Paris', category: ['major', 'business'] },
+    { name: 'Amsterdam', tz: 'Europe/Amsterdam', category: ['major', 'business'] },
+    { name: 'Auckland', tz: 'Pacific/Auckland', category: ['major'] },
+    { name: 'Fiji', tz: 'Pacific/Fiji', category: ['major'] }
+  ];
+
+  let currentFilter = 'all';
+  let showAnalog = true;
+  let animationId = null;
+
+  function getTimeForTimezone(tzName) {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: tzName,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    return formatter.format(new Date());
+  }
+
+  function getDateForTimezone(tzName) {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: tzName,
+      weekday: 'short',
+      month: 'short',
+      day: '2-digit'
+    });
+    return formatter.format(new Date());
+  }
+
+  function getTimeComponents(tzName) {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: tzName,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    
+    const parts = formatter.formatToParts(now);
+    const time = {};
+    parts.forEach(part => {
+      if (part.type !== 'literal') time[part.type] = parseInt(part.value);
+    });
+    
+    return {
+      hour: time.hour || 0,
+      minute: time.minute || 0,
+      second: time.second || 0
+    };
+  }
+
+  function getUTCOffset(tzName) {
+    const now = new Date();
+    const utcFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'UTC',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    
+    const tzFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: tzName,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+
+    const utcStr = utcFormatter.format(now);
+    const tzStr = tzFormatter.format(now);
+
+    const utcHour = parseInt(utcStr.split(':')[0]);
+    const tzHour = parseInt(tzStr.split(':')[0]);
+
+    const diff = (tzHour - utcHour + 24) % 24;
+    const sign = diff > 12 ? -(24 - diff) : diff;
+    
+    return sign > 0 ? `UTC+${sign}` : `UTC${sign}`;
+  }
+
+  function createClockCard(timezone) {
+    const time = getTimeForTimezone(timezone.tz);
+    const date = getDateForTimezone(timezone.tz);
+    const offset = getUTCOffset(timezone.tz);
+    const { hour, minute, second } = getTimeComponents(timezone.tz);
+
+    const analogHTML = showAnalog ? `
+      <div class="analog-clock" id="analog-${timezone.name}">
+        <div class="number">
+          <span>12</span>
+          <span>3</span>
+          <span>6</span>
+          <span>9</span>
+        </div>
+        <div class="hand hour-hand" id="hour-${timezone.name}" style="transform: rotate(${(hour % 12) * 30 + minute * 0.5}deg)"></div>
+        <div class="hand minute-hand" id="minute-${timezone.name}" style="transform: rotate(${minute * 6 + second * 0.1}deg)"></div>
+        <div class="hand second-hand" id="second-${timezone.name}" style="transform: rotate(${second * 6}deg)"></div>
+        <div class="clock-center"></div>
+      </div>
+    ` : '';
+
+    return `
+      <div class="clock-card">
+        <div class="timezone-name">${timezone.name}</div>
+        <div class="timezone-offset">${offset}</div>
+        <div class="digital-time">${time}</div>
+        <div class="date-display">${date}</div>
+        ${analogHTML}
+      </div>
+    `;
+  }
+
+  function renderClocks() {
+    const grid = document.getElementById('clocksGrid');
+    const filtered = timezones.filter(tz => 
+      currentFilter === 'all' || tz.category.includes(currentFilter)
+    );
+    grid.innerHTML = filtered.map(tz => createClockCard(tz)).join('');
+  }
+
+  function updateClocks() {
+    timezones.forEach(timezone => {
+      const digitalEl = document.querySelector(`[id^="${timezone.name}"]`)?.parentElement?.querySelector('.digital-time');
+      if (digitalEl) {
+        digitalEl.textContent = getTimeForTimezone(timezone.tz);
+      }
+
+      if (showAnalog) {
+        const { hour, minute, second } = getTimeComponents(timezone.tz);
+        
+        const hourHand = document.getElementById(`hour-${timezone.name}`);
+        const minuteHand = document.getElementById(`minute-${timezone.name}`);
+        const secondHand = document.getElementById(`second-${timezone.name}`);
+        
+        if (hourHand) hourHand.style.transform = `rotate(${(hour % 12) * 30 + minute * 0.5}deg)`;
+        if (minuteHand) minuteHand.style.transform = `rotate(${minute * 6 + second * 0.1}deg)`;
+        if (secondHand) secondHand.style.transform = `rotate(${second * 6}deg)`;
+      }
+    });
+
+    const utcFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'UTC',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    document.getElementById('utcTime').textContent = utcFormatter.format(new Date());
+
+    animationId = requestAnimationFrame(updateClocks);
+  }
+
+  function filterClocks(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('.controls .btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    renderClocks();
+    updateClocks();
+  }
+
+  function toggleAnalog() {
+    showAnalog = document.getElementById('analogToggle').checked;
+    renderClocks();
+    updateClocks();
+  }
+
+  renderClocks();
+  updateClocks();
+
+  window.addEventListener('beforeunload', () => {
+    if (animationId) cancelAnimationFrame(animationId);
+  });
+</script>
+
+</body>
+</html>
